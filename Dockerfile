@@ -1,11 +1,8 @@
-# Utilisation d'une image Debian stable
-FROM debian:bullseye-slim
+# Utilisation d'une image Python
+FROM python:3.9-slim
 
 # Installation des dépendances système
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 \
-    python3-pip \
-    python3-dev \
     clamav \
     clamav-daemon \
     clamav-freshclam \
@@ -35,7 +32,8 @@ RUN pip3 install --no-cache-dir \
     pefile \
     capstone \
     volatility3 \
-    distorm3
+    distorm3 \
+    psutil
 
 # Configuration de ClamAV
 RUN mkdir -p /var/run/clamav && \
