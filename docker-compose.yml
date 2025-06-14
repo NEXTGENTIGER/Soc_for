@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  forensic-analyzer:
+    build: .
+    volumes:
+      - ./input:/app/input
+      - ./output:/app/output
+      - ./logs:/app/logs
+      - ./rules:/app/rules
+    environment:
+      - CLAMD_SOCKET=/var/run/clamav/clamd.sock
+      - CLAMD_TCP=localhost:3310
+    ports:
+      - "3310:3310"  # Port ClamAV
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+    init: true
+    command: >
+      sh -c "
+        # Configuration de ClamAV
+        mkdir -p /var/run/clamav &&
+        chown clamav:clamav /var/run/clamav &&
+        chmod 750 /var/run/clamav &&
+        
+        # Mise à jour des signatures ClamAV
+        freshclam &&
+        
+        # Démarrage de ClamAV
+        service clamav-daemon start &&
+        
+        # Attente du démarrage
+        sleep 5 &&
+        
+        # Vérification du statut
+        clamdscan --ping &&
+        
+        # Lancement de l'analyse
+        python3 forensic_analyzer.py /app/input --full-analysis
+      "
+    healthcheck:
+      test: ["CMD", "clamdscan", "--ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  clamav-data:
+    driver: local 
