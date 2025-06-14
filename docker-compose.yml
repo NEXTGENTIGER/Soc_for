@@ -11,6 +11,8 @@ services:
     environment:
       - CLAMD_SOCKET=/var/run/clamav/clamd.sock
       - CLAMD_TCP=localhost:3310
+      - PYTHONUNBUFFERED=1
+      - TZ=UTC
     ports:
       - "3310:3310"  # Port ClamAV
     cap_add:
@@ -46,6 +48,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    restart: unless-stopped
 
 volumes:
   clamav-data:
